@@ -27,8 +27,18 @@ class cube():
 
     def move(self):
         pygame.draw.rect(win, self.color, (self.x, self.y, gap, gap))
-        self.x += self.dx * self.speed
-        self.y += self.dy * self.speed
+        x =  self.x + self.dx * self.speed
+        y =  self.y + self.dy * self.speed
+        if x >= width:
+            x = 0
+        if x < 0:
+            x = width - gap
+        if y >= height:
+            y = 0
+        if y < 0:
+            y = height - gap
+        self.x = x
+        self.y = y
 
 
 
@@ -52,6 +62,19 @@ class snake():
                 if c == self.body[-1]:
                     self.turningPoints.pop((c.x,c.y))
             c.move()
+
+
+    #check if die
+    def die(self):
+        realBody = self.body[1:]
+        headPos = (self.head.x, self.head.y)
+        for c in realBody:
+            if headPos == (c.x, c.y):
+                return True
+        return False
+
+
+
 #initialize snake
 mysnake = snake(gap,250, red, blue)
 
@@ -68,13 +91,17 @@ myFood = generateFood()
 
 #snake eating food
 def eat():
-    global myFood
+    global myFood, mysnake
     if mysnake.head.x == myFood.x and mysnake.head.y == myFood.y:
         #growing
         tail = mysnake.body[-1]
         newCube = cube(mysnake.bodyColor, tail.x - tail.dx*gap, tail.y - tail.dy*gap, tail.dx, tail.dy, tail.speed)
         mysnake.body.append(newCube)
         myFood = generateFood()
+        for c in mysnake.body:
+            print((c.x, c.y))
+        print(".")
+
 
 
 
@@ -93,11 +120,13 @@ def drawGrid():
 
 #refresh everything displayed on window
 def redraw():
+    global mysnake
     win.fill(white)     #make the background white
     drawGrid()
-    mysnake.move()
     myFood.move()
+    mysnake.move()
     eat()
+
    
 
 #game loop
@@ -108,22 +137,28 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                mysnake.head.dy = -1
-                mysnake.head.dx = 0
-                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, -1)
-            if event.key == pygame.K_DOWN:
-                mysnake.head.dy = 1
-                mysnake.head.dx = 0
-                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, 1)
-            if event.key == pygame.K_LEFT:
-                mysnake.head.dy = 0
-                mysnake.head.dx = -1
-                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (-1, 0)
-            if event.key == pygame.K_RIGHT:
-                mysnake.head.dy = 0
-                mysnake.head.dx = 1
-                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (1, 0)
+            turnPos = mysnake.turningPoints.keys()
+            if (mysnake.head.x, mysnake.head.y) not in turnPos:         #cant turn to two directions at the same time
+                if event.key == pygame.K_UP and (mysnake.head.dy != 1 or len(mysnake.body) == 1):
+                    mysnake.head.dy = -1
+                    mysnake.head.dx = 0
+                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, -1)
+                elif event.key == pygame.K_DOWN and (mysnake.head.dy != -1  or len(mysnake.body) == 1):
+                    mysnake.head.dy = 1
+                    mysnake.head.dx = 0
+                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, 1)
+                elif event.key == pygame.K_LEFT and (mysnake.head.dx != 1  or len(mysnake.body) == 1):
+                    mysnake.head.dy = 0
+                    mysnake.head.dx = -1
+                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (-1, 0)
+                elif event.key == pygame.K_RIGHT and (mysnake.head.dx != -1  or len(mysnake.body) == 1):
+                    mysnake.head.dy = 0
+                    mysnake.head.dx = 1
+                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (1, 0)
     
     redraw()
+    #if die, restart
+    if mysnake.die():
+        for c in mysnake.body:
+            mysnake = snake(gap,250, red, blue)
     pygame.display.update()
