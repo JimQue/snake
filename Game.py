@@ -12,6 +12,12 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
+#background images
+background = pygame.image.load('bg.jpg')
+background = pygame.transform.scale(background, (width, height))
+background2 = pygame.transform.flip(background, True, False)
+
+
 
 
 #movable cubes that will compose the body of the snake
@@ -26,7 +32,6 @@ class cube():
     
 
     def move(self):
-        pygame.draw.rect(win, self.color, (self.x, self.y, gap, gap))
         x =  self.x + self.dx * self.speed
         y =  self.y + self.dy * self.speed
         if x >= width:
@@ -39,6 +44,7 @@ class cube():
             y = height - gap
         self.x = x
         self.y = y
+        pygame.draw.rect(win, self.color, (self.x, self.y, gap, gap))
 
 
 
@@ -63,7 +69,6 @@ class snake():
                     self.turningPoints.pop((c.x,c.y))
             c.move()
 
-
     #check if die
     def die(self):
         realBody = self.body[1:]
@@ -74,9 +79,17 @@ class snake():
         return False
 
 
+#background image class
+class bg():
+    def __init__(self, img, x, y):
+        self.snake = snake
+        self.x = x
+        self.y = y
+        self.img = img
+    
+    def draw(self):
+        win.blit(background, (self.x, self.y))
 
-#initialize snake
-mysnake = snake(gap,250, red, blue)
 
 
 
@@ -86,7 +99,20 @@ def generateFood():
     y = random.randint(0, 19)
     return cube(green, x*gap, y*gap, 0, 0 , 0)
 
+#initialize
+mysnake = snake(gap,250, red, blue)
 myFood = generateFood()
+#initialize set of images
+bg = bg(background, 0, 0)
+
+# #draw background images
+# def draw_bg():
+#     if bg1.x <= -width:
+#         bg1.x = width
+#     if bg2.x <= -width:
+#         bg2.x = width
+#     bg1.move()
+#     bg2.move()
 
 
 #snake eating food
@@ -100,7 +126,6 @@ def eat():
         myFood = generateFood()
         for c in mysnake.body:
             print((c.x, c.y))
-        print(".")
 
 
 
@@ -111,17 +136,17 @@ def drawGrid():
     x = 0
     y = 0
     while x <= width:
-        pygame.draw.line(win, black, (x, 0), (x, height))
+        pygame.draw.line(win, white, (x, 0), (x, height))
         x += gap
     while y <= height:
-        pygame.draw.line(win, black, (0, y), (width, y))
+        pygame.draw.line(win, white, (0, y), (width, y))
         y += gap
 
 
 #refresh everything displayed on window
 def redraw():
     global mysnake
-    win.fill(white)     #make the background white
+    bg.draw()
     drawGrid()
     myFood.move()
     mysnake.move()
@@ -136,25 +161,26 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-        if event.type == pygame.KEYDOWN:
-            turnPos = mysnake.turningPoints.keys()
-            if (mysnake.head.x, mysnake.head.y) not in turnPos:         #cant turn to two directions at the same time
-                if event.key == pygame.K_UP and (mysnake.head.dy != 1 or len(mysnake.body) == 1):
-                    mysnake.head.dy = -1
-                    mysnake.head.dx = 0
-                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, -1)
-                elif event.key == pygame.K_DOWN and (mysnake.head.dy != -1  or len(mysnake.body) == 1):
-                    mysnake.head.dy = 1
-                    mysnake.head.dx = 0
-                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, 1)
-                elif event.key == pygame.K_LEFT and (mysnake.head.dx != 1  or len(mysnake.body) == 1):
-                    mysnake.head.dy = 0
-                    mysnake.head.dx = -1
-                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (-1, 0)
-                elif event.key == pygame.K_RIGHT and (mysnake.head.dx != -1  or len(mysnake.body) == 1):
-                    mysnake.head.dy = 0
-                    mysnake.head.dx = 1
-                    mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (1, 0)
+        # if event.type == pygame.KEYDOWN:
+        keys = pygame.key.get_pressed()
+        turnPos = mysnake.turningPoints.keys()
+        if (mysnake.head.x, mysnake.head.y) not in turnPos:         #can't turn to two directions at the same time
+            if keys[pygame.K_UP] and (mysnake.head.dy != 1 or len(mysnake.body) == 1):
+                mysnake.head.dy = -1
+                mysnake.head.dx = 0
+                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, -1)
+            elif keys[pygame.K_DOWN] and (mysnake.head.dy != -1  or len(mysnake.body) == 1):
+                mysnake.head.dy = 1
+                mysnake.head.dx = 0
+                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (0, 1)
+            elif keys[pygame.K_LEFT] and (mysnake.head.dx != 1  or len(mysnake.body) == 1):
+                mysnake.head.dy = 0
+                mysnake.head.dx = -1
+                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (-1, 0)
+            elif keys[pygame.K_RIGHT] and (mysnake.head.dx != -1  or len(mysnake.body) == 1):
+                mysnake.head.dy = 0
+                mysnake.head.dx = 1
+                mysnake.turningPoints[(mysnake.head.x, mysnake.head.y)] = (1, 0)
     
     redraw()
     #if die, restart
