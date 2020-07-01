@@ -2,10 +2,11 @@ import pygame
 import random
 
 #variables
-height = 500    #height of window
+height = 600    #height of window
 width = 500     #width of window
-win = pygame.display.set_mode((height, width))
-gap = height // 20  #gap between each line
+grid_height = 500
+win = pygame.display.set_mode((width, height))
+gap = width // 20  #gap between each line
 #colors
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -38,10 +39,10 @@ class cube():
             x = 0
         if x < 0:
             x = width - gap
-        if y >= height:
+        if y >= grid_height:
             y = 0
         if y < 0:
-            y = height - gap
+            y = grid_height - gap
         self.x = x
         self.y = y
         pygame.draw.rect(win, self.color, (self.x, self.y, gap, gap))
@@ -136,9 +137,9 @@ def drawGrid():
     x = 0
     y = 0
     while x <= width:
-        pygame.draw.line(win, white, (x, 0), (x, height))
+        pygame.draw.line(win, white, (x, 0), (x, grid_height))
         x += gap
-    while y <= height:
+    while y <= grid_height:
         pygame.draw.line(win, white, (0, y), (width, y))
         y += gap
 
