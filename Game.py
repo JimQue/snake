@@ -1,7 +1,9 @@
 import pygame
 import classes
+import pickle
 
-
+pygame.init()
+pygame.display.set_caption('snake')
 #variables
 height = 600    #height of window
 width = 500     #width of window
@@ -14,8 +16,12 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
+purple = (128, 0, 128)
+pink = (255,192,203)
+brown = (165,42,42)
 #game score
 score = 0
+record = []
 #background images
 background = pygame.image.load('imgs/bg.jpg')
 background = pygame.transform.scale(background, (width, height))
@@ -25,25 +31,55 @@ r_h = restart_img.get_height()
 r_w = restart_img.get_width()
 restart_clicked_img = pygame.transform.scale(restart_img, (round(r_w * 0.5), round(r_h * 0.5)))
 #initialization
-mysnake = classes.snake(win, width//2, grid_height//2, red, blue, gap, width, grid_height, gap)
-myFood = classes.food(win, green, gap)
+mysnake = classes.snake(win, width//2, grid_height//2, pink, purple, gap, width, grid_height, gap)
+myFood = classes.food(win, brown, gap)
 #initialize background object
 bg = classes.bg(win, background, 0, 0)
 #initialzie restart object
 function_bar_height = height - grid_height
 restart = classes.button(win, restart_img, (width - r_w)//2, grid_height + (function_bar_height - r_h)//2)
+#reading score records from pickled file
+try:
+    record = pickle.load(open('record', 'rb'))
+except FileNotFoundError:
+    pickle.dump(record, open('record', 'wb'))
 
+    
+#update record
+def update():
+    global record, score
+    record = pickle.load(open('record', 'rb'))
+    record.append(score)
+    print(record)
+    pickle.dump(record, open('record', 'wb'))
+    score = 0
+
+#get highest score
+def get_heighest():
+    global record
+    record = pickle.load(open('record', 'rb'))
+    return str(max(record))
+
+
+#display text
+def message_display(surface, text, x):
+    myfont = pygame.font.Font('freesansbold.ttf',40)
+    sur = myfont.render(text, True, purple)
+    y = grid_height + function_bar_height//2
+    text_rect = sur.get_rect()
+    text_rect.center = (x, y)
+    surface.blit(sur, text_rect)
 
 
 #snake eating food
 def eat():
-    global myFood, mysnake
+    global myFood, mysnake, score
     if mysnake.head.x == myFood.x and mysnake.head.y == myFood.y:
         #growing
         tail = mysnake.body[-1]
         newCube = classes.cube(win, mysnake.bodyColor, tail.x - tail.dx*gap, tail.y - tail.dy*gap, tail.dx, tail.dy, tail.vel, width, grid_height, gap)
         mysnake.body.append(newCube)
-        myFood = classes.food(win, green, gap)
+        myFood = classes.food(win, brown, gap)
         score += 1
 
 
@@ -64,16 +100,20 @@ def redraw():
     global mysnake
     bg.draw()
     restart.draw()
-    drawGrid()
     myFood.draw()
     mysnake.move()
+    drawGrid()
     eat()
+    #show current score
+    message_display(win, "score:" + str(score), (width - r_w)//4)
+    #show highest record
+    message_display(win, 'record:' + get_heighest(), width - (width - r_w)//4)
 
 
 #create new snake and restart game
 def replay():
     global mysnake, score
-    mysnake = classes.snake(win, width//2, grid_height//2, red, blue, gap, width, grid_height, gap)
+    mysnake = classes.snake(win, width//2, grid_height//2, pink, purple, gap, width, grid_height, gap)
     score = 0
 
 #game loop
@@ -124,5 +164,6 @@ while True:
     redraw()
     #if die, restart
     if mysnake.die():
+        update()
         replay()
     pygame.display.update()
