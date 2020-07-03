@@ -5,11 +5,11 @@ import pickle
 pygame.init()
 pygame.display.set_caption('snake')
 #variables
-height = 600    #height of window
-width = 500     #width of window
-grid_height = 500
-win = pygame.display.set_mode((width, height))
-gap = width // 20  #gap between each line
+height = 1000   #height of window
+grid_width = 800
+grid_height = 800
+win = pygame.display.set_mode((grid_width, height))
+gap = grid_width // 20  #gap between each line
 #colors
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -24,20 +24,21 @@ score = 0
 record = []
 #background images
 background = pygame.image.load('imgs/bg.jpg')
-background = pygame.transform.scale(background, (width, height))
+background = pygame.transform.scale(background, (grid_width, height))
 #restart icon
-restart_img = pygame.image.load('imgs/restart.png')
+restart_img = pygame.transform.scale2x(pygame.image.load('imgs/restart.png'))
 r_h = restart_img.get_height()
 r_w = restart_img.get_width()
+#smaller image for hover effect
 restart_clicked_img = pygame.transform.scale(restart_img, (round(r_w * 0.5), round(r_h * 0.5)))
 #initialization
-mysnake = classes.snake(win, width//2, grid_height//2, pink, purple, gap, width, grid_height, gap)
+mysnake = classes.snake(win, grid_width // 2, grid_height // 2, pink, purple, gap, grid_width, grid_height, gap)
 myFood = classes.food(win, brown, gap)
 #initialize background object
 bg = classes.bg(win, background, 0, 0)
 #initialzie restart object
 function_bar_height = height - grid_height
-restart = classes.button(win, restart_img, (width - r_w)//2, grid_height + (function_bar_height - r_h)//2)
+restart = classes.button(win, restart_img, (grid_width - r_w) // 2, grid_height + (function_bar_height - r_h) // 2)
 #reading score records from pickled file
 try:
     record = pickle.load(open('record', 'rb'))
@@ -63,7 +64,7 @@ def get_heighest():
 
 #display text
 def message_display(surface, text, x):
-    myfont = pygame.font.Font('freesansbold.ttf',40)
+    myfont = pygame.font.Font('freesansbold.ttf',60)
     sur = myfont.render(text, True, purple)
     y = grid_height + function_bar_height//2
     text_rect = sur.get_rect()
@@ -77,7 +78,7 @@ def eat():
     if mysnake.head.x == myFood.x and mysnake.head.y == myFood.y:
         #growing
         tail = mysnake.body[-1]
-        newCube = classes.cube(win, mysnake.bodyColor, tail.x - tail.dx*gap, tail.y - tail.dy*gap, tail.dx, tail.dy, tail.vel, width, grid_height, gap)
+        newCube = classes.cube(win, mysnake.bodyColor, tail.x - tail.dx * gap, tail.y - tail.dy * gap, tail.dx, tail.dy, tail.vel, grid_width, grid_height, gap)
         mysnake.body.append(newCube)
         myFood = classes.food(win, brown, gap)
         score += 1
@@ -87,11 +88,11 @@ def eat():
 def drawGrid():
     x = 0
     y = 0
-    while x <= width:
+    while x <= grid_width:
         pygame.draw.line(win, white, (x, 0), (x, grid_height))
         x += gap
     while y <= grid_height:
-        pygame.draw.line(win, white, (0, y), (width, y))
+        pygame.draw.line(win, white, (0, y), (grid_width, y))
         y += gap
 
 
@@ -105,15 +106,15 @@ def redraw():
     drawGrid()
     eat()
     #show current score
-    message_display(win, "score:" + str(score), (width - r_w)//4)
+    message_display(win, "score:" + str(score), (grid_width - r_w) // 4)
     #show highest record
-    message_display(win, 'record:' + get_heighest(), width - (width - r_w)//4)
+    message_display(win, 'record:' + get_heighest(), grid_width - (grid_width - r_w) // 4)
 
 
 #create new snake and restart game
 def replay():
     global mysnake, score
-    mysnake = classes.snake(win, width//2, grid_height//2, pink, purple, gap, width, grid_height, gap)
+    mysnake = classes.snake(win, grid_width // 2, grid_height // 2, pink, purple, gap, grid_width, grid_height, gap)
     score = 0
 
 #game loop
@@ -132,11 +133,11 @@ while True:
         #hover effect
         if pos[0] >= restart.x and pos[0] <= restart.x + r_w and pos[1] >= restart.y and pos[1] <= restart.y + r_h:
             restart.img = restart_clicked_img
-            restart.x = (width - restart.img.get_width()) // 2
+            restart.x = (grid_width - restart.img.get_width()) // 2
             restart.y = grid_height + (function_bar_height - restart.img.get_height()) // 2
         else:
             restart.img = restart_img
-            restart.x = (width - restart.img.get_width()) // 2
+            restart.x = (grid_width - restart.img.get_width()) // 2
             restart.y = grid_height + (function_bar_height - restart.img.get_height()) // 2
 
     #directions control
