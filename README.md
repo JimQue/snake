@@ -1,2 +1,4 @@
 # snake
-snake game
+
+screenshots
+![](screenshots/screenshot1.png)
